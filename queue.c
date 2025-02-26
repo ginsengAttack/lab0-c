@@ -23,10 +23,11 @@ void q_free(struct list_head *head)
 {
     struct list_head *pos = head->next;
     while (pos != head) {
-        pos = head->next;
         list_del(pos);
         element_t *node = list_entry(pos, element_t, list);
+        free(node->value);
         free(node);
+        pos = head->next;
     }
     free(head);
 }
@@ -45,6 +46,11 @@ bool q_insert_head(struct list_head *head, char *s)
 /* Insert an element at tail of queue */
 bool q_insert_tail(struct list_head *head, char *s)
 {
+    if (!head)
+        return false;
+    element_t *node = malloc(sizeof(element_t));
+    node->value = strdup(s);
+    list_add_tail(&node->list, head);
     return true;
 }
 
