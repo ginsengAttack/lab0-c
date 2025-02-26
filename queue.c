@@ -13,7 +13,7 @@
 /* Create an empty queue */
 struct list_head *q_new()
 {
-    struct list_head *new = malloc(sizeof(list_head));
+    struct list_head *new = malloc(sizeof(struct list_head));
     INIT_LIST_HEAD(new);
     return new;
 }
@@ -21,16 +21,14 @@ struct list_head *q_new()
 /* Free all storage used by queue */
 void q_free(struct list_head *head)
 {
-    if (head) {
-        struct list_head *del = NULL;
-        struct list_head *pos;
-        for (pos = head->next; pos != head; pos = pos->next) {
-            if (del)
-                free(list_entry(del, element_t, list));
-            del = pos;
-        }
-        free(list_entry(head, element_t, list));
+    struct list_head *pos = head->next;
+    while (pos != head) {
+        pos = head->next;
+        list_del(pos);
+        element_t *node = list_entry(pos, element_t, list);
+        free(node);
     }
+    free(head);
 }
 
 /* Insert an element at head of queue */
