@@ -13,10 +13,9 @@
 /* Create an empty queue */
 struct list_head *q_new()
 {
-    element_t *node = malloc(sizeof(element_t));
-    if (node)
-        INIT_LIST_HEAD(&node->list);
-    return &node->list;
+    struct list_head *new = malloc(sizeof(list_head));
+    INIT_LIST_HEAD(new);
+    return new;
 }
 
 /* Free all storage used by queue */
