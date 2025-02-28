@@ -110,6 +110,31 @@ bool q_delete_mid(struct list_head *head)
 bool q_delete_dup(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
+    if (!head || head->next == head)
+        return false;
+    q_sort(head, false);
+    struct list_head **cur = &head->next;
+    while ((*cur)->next != head && *cur != head) {
+        if (strcmp(list_entry(*cur, element_t, list)->value,
+                   list_entry((*cur)->next, element_t, list)->value) == 0) {
+            struct list_head *tmp = (*cur)->next;
+            while (tmp != head &&
+                   strcmp(list_entry(tmp, element_t, list)->value,
+                          list_entry(*cur, element_t, list)->value) == 0) {
+                struct list_head *del = tmp;
+                tmp = tmp->next;
+                list_del(del);
+                free(list_entry(del, element_t, list)->value);
+                free(list_entry(del, element_t, list));
+            }
+            struct list_head *del = *cur;
+            tmp->prev = (*cur)->prev;
+            *cur = tmp;
+            free(list_entry(del, element_t, list)->value);
+            free(list_entry(del, element_t, list));
+        } else
+            cur = &(*cur)->next;
+    }
     return true;
 }
 
@@ -152,13 +177,14 @@ void q_sort(struct list_head *head, bool descend)
     for (int i = 0; i < q_size(head); i++) {
         for (struct list_head *pos = head->next; pos->next != head;) {
             if (strcmp(list_entry(pos, element_t, list)->value,
-                       list_entry(pos->next, element_t, list)->value) > 0) {
+                       list_entry(pos->next, element_t, list)->value) > 0)
                 list_move(pos, pos->next);
-                printf("This is a test!\n");
-            } else
+            else
                 pos = pos->next;
         }
     }
+    if (descend)
+        q_reverse(head);
 }
 
 /* Remove every node which has a node with a strictly less value anywhere to
