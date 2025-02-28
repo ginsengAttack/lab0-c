@@ -165,6 +165,7 @@ void q_swap(struct list_head *head)
     for (; *cur != head && (*cur)->next != head; cur = &(*cur)->next->next) {
         nex = (*cur)->next;
         (*cur)->next = nex->next;
+        nex->next->prev = *cur;
         nex->next = *cur;
         nex->prev = (*cur)->prev;
         (*cur)->prev = nex;
