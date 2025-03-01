@@ -23,6 +23,8 @@ struct list_head *q_new()
 /* Free all storage used by queue */
 void q_free(struct list_head *head)
 {
+    if (!head)
+        return;
     struct list_head *pos = head->next;
     while (pos != head) {
         list_del(pos);
