@@ -193,17 +193,10 @@ void q_reverseK(struct list_head *head, int k)
 /* Sort elements of queue in ascending/descending order */
 void q_sort(struct list_head *head, bool descend)
 {
-    for (int i = 0; i < q_size(head); i++) {
-        for (struct list_head *pos = head->next; pos->next != head;) {
-            if (strcmp(list_entry(pos, element_t, list)->value,
-                       list_entry(pos->next, element_t, list)->value) > 0)
-                list_move(pos, pos->next);
-            else
-                pos = pos->next;
-        }
-    }
-    if (descend)
-        q_reverse(head);
+    int s = q_size(head) / 2;
+    struct list_head *tail = head;
+    for (int i = s; i >= 0; i--)
+        tail = tail->next;
 }
 
 /* Remove every node which has a node with a strictly less value anywhere to
@@ -211,7 +204,24 @@ void q_sort(struct list_head *head, bool descend)
 int q_ascend(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+    int number = 0;
+    const char *test = list_entry(head->prev, element_t, list)->value;
+    for (struct list_head *pos = head->prev; pos != head;) {
+        if (strcmp(test, list_entry(pos, element_t, list)->value) < 0) {
+            struct list_head *del = pos;
+            pos = pos->prev;
+            list_del(del);
+            free(list_entry(del, element_t, list)->value);
+            free(list_entry(del, element_t, list));
+        } else {
+            test = list_entry(pos, element_t, list)->value;
+            number++;
+            pos = pos->prev;
+        }
+    }
+    return number;
 }
 
 /* Remove every node which has a node with a strictly greater value anywhere to
@@ -219,7 +229,24 @@ int q_ascend(struct list_head *head)
 int q_descend(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+    int number = 0;
+    const char *test = list_entry(head->prev, element_t, list)->value;
+    for (struct list_head *pos = head->prev; pos != head;) {
+        if (strcmp(test, list_entry(pos, element_t, list)->value) > 0) {
+            struct list_head *del = pos;
+            pos = pos->prev;
+            list_del(del);
+            // free(list_entry(del,element_t,list)->value);
+            // free(list_entry(del,element_t,list));
+        } else {
+            test = list_entry(pos, element_t, list)->value;
+            number++;
+            pos = pos->prev;
+        }
+    }
+    return number;
 }
 
 /* Merge all the queues into one sorted queue, which is in ascending/descending
