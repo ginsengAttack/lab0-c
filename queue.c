@@ -16,10 +16,8 @@ struct list_head *q_new()
     struct list_head *new = malloc(sizeof(struct list_head));
     if (new == NULL)
         return NULL;
-    else {
-        INIT_LIST_HEAD(new);
-        return new;
-    }
+    INIT_LIST_HEAD(new);
+    return new;
 }
 
 /* Free all storage used by queue */
@@ -193,10 +191,15 @@ void q_reverseK(struct list_head *head, int k)
 /* Sort elements of queue in ascending/descending order */
 void q_sort(struct list_head *head, bool descend)
 {
-    int s = q_size(head) / 2;
-    struct list_head *tail = head;
-    for (int i = s; i >= 0; i--)
-        tail = tail->next;
+    for (int i = 0; i < q_size(head); i++) {
+        for (struct list_head *pos = head->next; pos->next != head;) {
+            if (strcmp(list_entry(pos, element_t, list)->value,
+                       list_entry(pos->next, element_t, list)->value) > 0)
+                list_move(pos, pos->next);
+            else
+                pos = pos->next;
+        }
+    }
 }
 
 /* Remove every node which has a node with a strictly less value anywhere to
