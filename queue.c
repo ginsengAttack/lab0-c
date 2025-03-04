@@ -191,17 +191,62 @@ void q_reverseK(struct list_head *head, int k)
 }
 
 /* Sort elements of queue in ascending/descending order */
+struct list_head *merge_sort(struct list_head *head)
+{
+    int len = q_size(head);
+    if (len <= 1) {
+        if (len == 0)
+            return head;
+        else if (strcmp(list_entry(head, element_t, list)->value,
+                        list_entry(head->next, element_t, list)->value) > 0) {
+            list_move(head, head->next);
+            return head->next;
+        }
+        return head;
+    }
+    struct list_head *list1 = head;
+    struct list_head *list2 = head;
+    for (int i = len / 2; i >= 0; i--)
+        list2 = list2->next;
+    struct list_head *tmp = list2->prev;
+    list2->prev = list1->prev;
+    list1->prev = tmp;
+    list1->prev->next = list1;
+    list2->prev->next = list2;
+    list1 = merge_sort(list1);
+    list2 = merge_sort(list2);
+    struct list_head *trace1 = list1;
+    struct list_head *trace2 = list2;
+    bool list1_bool = false, list2_bool = false;
+    head = strcmp(list_entry(list1, element_t, list)->value,
+                  list_entry(list2, element_t, list)->value) <= 0
+               ? list1
+               : list2;
+    do {
+        if (trace1 == head && list1_bool) {
+            struct list_head *tmp2 = trace2;
+            trace2 = trace2->next;
+            list_add_tail(tmp2, trace1);
+            list2_bool = true;
+        } else if (strcmp(list_entry(trace1, element_t, list)->value,
+                          list_entry(trace2, element_t, list)->value) <= 0) {
+            trace1 = trace1->next;
+            list1_bool = true;
+        } else {
+            struct list_head *tmp2 = trace2;
+            trace2 = trace2->next;
+            list_add_tail(tmp2, trace1);
+            list2_bool = true;
+        }
+    } while (trace2 != list2 || !list2_bool);
+    return head;
+}
 void q_sort(struct list_head *head, bool descend)
 {
-    for (int i = 0; i < q_size(head); i++) {
-        for (struct list_head *pos = head->next; pos->next != head;) {
-            if (strcmp(list_entry(pos, element_t, list)->value,
-                       list_entry(pos->next, element_t, list)->value) > 0)
-                list_move(pos, pos->next);
-            else
-                pos = pos->next;
-        }
-    }
+    struct list_head *list = head->next;
+    list_del(head);
+    list = merge_sort(list);
+    list_add_tail(head, list);
 }
 
 /* Remove every node which has a node with a strictly less value anywhere to
