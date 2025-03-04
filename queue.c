@@ -311,8 +311,8 @@ int q_descend(struct list_head *head)
             struct list_head *del = pos;
             pos = pos->prev;
             list_del(del);
-            // free(list_entry(del,element_t,list)->value);
-            // free(list_entry(del,element_t,list));
+            free(list_entry(del, element_t, list)->value);
+            free(list_entry(del, element_t, list));
         } else {
             test = list_entry(pos, element_t, list)->value;
             number++;
