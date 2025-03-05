@@ -214,6 +214,35 @@ void q_reverseK(struct list_head *head, int k)
 }
 
 /* Sort elements of queue in ascending/descending order */
+struct list_head *merge_two(struct list_head *list1, struct list_head *list2)
+{
+    struct list_head *head;
+    head = strcmp(list_entry(list1, element_t, list)->value,
+                  list_entry(list2, element_t, list)->value) <= 0
+               ? list1
+               : list2;
+    struct list_head *trace1 = list1;
+    struct list_head *trace2 = list2;
+    bool list1_bool = false, list2_bool = false;
+    do {
+        if (trace1 == head && list1_bool) {
+            struct list_head *tmp2 = trace2;
+            trace2 = trace2->next;
+            list_add_tail(tmp2, trace1);
+            list2_bool = true;
+        } else if (strcmp(list_entry(trace1, element_t, list)->value,
+                          list_entry(trace2, element_t, list)->value) <= 0) {
+            trace1 = trace1->next;
+            list1_bool = true;
+        } else {
+            struct list_head *tmp2 = trace2;
+            trace2 = trace2->next;
+            list_add_tail(tmp2, trace1);
+            list2_bool = true;
+        }
+    } while (trace2 != list2 || !list2_bool);
+    return head;
+}
 struct list_head *merge_sort(struct list_head *head)
 {
     int len = q_size(head);
@@ -238,31 +267,7 @@ struct list_head *merge_sort(struct list_head *head)
     list2->prev->next = list2;
     list1 = merge_sort(list1);
     list2 = merge_sort(list2);
-    struct list_head *trace1 = list1;
-    struct list_head *trace2 = list2;
-    bool list1_bool = false, list2_bool = false;
-    head = strcmp(list_entry(list1, element_t, list)->value,
-                  list_entry(list2, element_t, list)->value) <= 0
-               ? list1
-               : list2;
-    do {
-        if (trace1 == head && list1_bool) {
-            struct list_head *tmp2 = trace2;
-            trace2 = trace2->next;
-            list_add_tail(tmp2, trace1);
-            list2_bool = true;
-        } else if (strcmp(list_entry(trace1, element_t, list)->value,
-                          list_entry(trace2, element_t, list)->value) <= 0) {
-            trace1 = trace1->next;
-            list1_bool = true;
-        } else {
-            struct list_head *tmp2 = trace2;
-            trace2 = trace2->next;
-            list_add_tail(tmp2, trace1);
-            list2_bool = true;
-        }
-    } while (trace2 != list2 || !list2_bool);
-    return head;
+    return merge_two(list1, list2);
 }
 void q_sort(struct list_head *head, bool descend)
 {
@@ -327,5 +332,50 @@ int q_descend(struct list_head *head)
 int q_merge(struct list_head *head, bool descend)
 {
     // https://leetcode.com/problems/merge-k-sorted-lists/
-    return 0;
+    if (!head || head->next == head)
+        return 0;
+    else if (head->next->next == head)
+        return list_entry(head->next, queue_contex_t, chain)->size;
+    int num = q_size(head);
+    int firstPos = 0;
+    int totalSize = 0;
+    struct list_head *first = NULL;
+    struct list_head *tail;
+    for (struct list_head *pos = head->next; pos != head; pos = pos->next) {
+        if (list_entry(pos, queue_contex_t, chain)->size != 0) {
+            first = list_entry(pos, queue_contex_t, chain)->q->next;
+            totalSize = list_entry(pos, queue_contex_t, chain)->size;
+            list_del(list_entry(pos, queue_contex_t, chain)->q);
+            tail = pos->next;
+            if (pos != head->next)  // this 2
+                INIT_LIST_HEAD(list_entry(pos, queue_contex_t, chain)->q);
+            break;
+        } else if (pos != head->next)
+            INIT_LIST_HEAD(list_entry(pos, queue_contex_t, chain)->q);  // this
+                                                                        // 3
+        firstPos++;
+    }
+    if (!first || firstPos == num)
+        return 0;
+    for (int i = firstPos + 1; i < num; i++) {
+        if (list_entry(tail, queue_contex_t, chain)->size == 0) {
+            INIT_LIST_HEAD(
+                list_entry(tail, queue_contex_t, chain)->q);  // this 4
+            continue;
+        }
+        struct list_head *link =
+            list_entry(tail, queue_contex_t, chain)->q->next;
+        list_del(list_entry(tail, queue_contex_t, chain)->q);
+        INIT_LIST_HEAD(list_entry(tail, queue_contex_t, chain)->q);
+        totalSize += list_entry(tail, queue_contex_t, chain)->size;
+        list_entry(tail, queue_contex_t, chain)->size = 0;
+        first = merge_two(first, link);
+        tail = tail->next;
+    }
+    list_add_tail(list_entry(head->next, queue_contex_t, chain)->q,
+                  first);  // this 1
+    if (descend)
+        q_reverse(head);
+    list_entry(head->next, queue_contex_t, chain)->size = totalSize;
+    return totalSize;  // this 5
 }
